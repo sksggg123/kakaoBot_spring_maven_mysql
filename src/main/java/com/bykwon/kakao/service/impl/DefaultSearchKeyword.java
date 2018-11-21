@@ -136,7 +136,94 @@ public class DefaultSearchKeyword implements SearchKeyword {
 			}
 			
 			mes_vo.setText(listCnt + "건 DB Insert Success");
-		} else if (vo.getContent().equals("connecting?"))
+		} else if (vo.getContent().contains("링크삭제"))
+		{
+			vo.getContent().trim();
+			String[] reqContent = null;
+			List<String> list = new ArrayList<String>();
+			int listCnt = 0;
+			
+			reqContent = vo.getContent().split(">");
+			
+			list = Lists.newArrayList(Splitter.on("|").trimResults().omitEmptyStrings().splitToList(reqContent[1]));
+			
+			for(String id : list)
+			{
+				
+				Connection conn = null;
+		        Statement st = null;
+		        
+		        try {
+		            conn = dataSource.getConnection();
+		            st = conn.createStatement();
+		            
+		            StringBuilder sb = new StringBuilder();
+		            String sql = sb.append("delete from LINK_REPOSITORY where _id = ")
+		                    .append(id + ";")
+		                    .toString();
+		            
+		            st.executeUpdate(sql);
+		            
+		        } catch (Exception e) {
+		            e.printStackTrace();
+		        } finally {
+		            try {
+		                if(st != null) st.close();
+		            } catch (SQLException e) {
+		                e.printStackTrace();
+		            }
+		            try {
+		                if(conn != null) conn.close();
+		            } catch (SQLException e) {
+		                e.printStackTrace();
+		            }                        
+		        }
+		        ++listCnt;
+			}
+			
+			mes_vo.setText(listCnt + "건 DB Delete Success");
+		}
+		else if (vo.getContent().contains("링크목록"))
+		{
+			Connection conn = null;
+		    Statement st = null;
+		    
+		    try {
+		        conn = getDataSource().getConnection();
+		        st = conn.createStatement();
+		        ResultSet rs = st.executeQuery("select _id, name, descript from LINK_REPOSITORY;");
+		        
+		        List<String> result = new ArrayList<String>();
+		        
+		        while(rs.next()) {
+		        	int _id = rs.getInt("_id");
+		        	String name = rs.getString("name");
+		        	String descript = rs.getString("descript");
+		        	
+		        	result.add(_id+" | " + name + " | " + descript);
+		        }
+		        
+		        mes_vo.setText(result.toString());
+		        
+		        
+		    } catch (Exception e) {
+		        e.printStackTrace();    
+		        
+		    } finally {
+		        try {
+		            if(st != null) st.close();
+		        } catch (SQLException e) {
+		            e.printStackTrace();
+		        }
+		        
+		        try {
+		            if(conn != null) conn.close();
+		        } catch (SQLException e) {
+		            e.printStackTrace();
+		        }                        
+		    }
+		}
+		else if (vo.getContent().equals("connecting?"))
 		{
 			try {
 				Thread.sleep(5*1000);
